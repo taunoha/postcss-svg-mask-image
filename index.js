@@ -278,16 +278,6 @@ function svgToMiniDataUri(svg) {
 }
 
 function ensureRootRule(root, selector, insertAt) {
-  let found = null;
-  root.walkRules((rule) => {
-    if (rule.selector === selector) {
-      found = rule;
-      return false;
-    }
-  });
-
-  if (found) return found;
-
   const rule = postcss.rule({ selector });
   if (insertAt === "bottom") root.append(rule);
   else root.prepend(rule);
