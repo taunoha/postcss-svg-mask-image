@@ -1,0 +1,41 @@
+{
+  "name": "postcss-svg-mask-image",
+  "version": "0.1.0",
+  "description": "PostCSS plugin for SVG mask-image",
+  "keywords": [
+    "postcss",
+    "postcss-plugin",
+    "svg",
+    "mask-image",
+    "css"
+  ],
+  "license": "MIT",
+  "author": "Tauno Hanni",
+  "main": "index.js",
+  "exports": {
+    ".": {
+      "require": "./index.js",
+      "import": "./index.js"
+    }
+  },
+  "files": [
+    "index.js"
+  ],
+  "peerDependencies": {
+    "postcss": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "postcss": "^8.5.6",
+    "vitest": "^2.0.0"
+  }
+}
