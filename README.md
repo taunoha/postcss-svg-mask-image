@@ -1,6 +1,6 @@
 # postcss-svg-mask-image
 
-A PostCSS plugin that rewrites `mask-image: svg(...)` calls in your CSS into a complete, cross-browser mask setup (mask image, repeat, size, and optional color via background-color). It injects `:root` CSS variables for each SVG icon into the same file, so the SVG data is stored once and reused everywhere.
+A PostCSS plugin that rewrites `mask-image: svg(...)` calls in your CSS into a complete, cross-browser mask setup (mask image, repeat, size, and optional color via background-color). It injects `:root` CSS variables for each SVG icon into the same file, so the SVG data is stored once and reused everywhere. **One icon can be used in any color and at any size** (via `color`/`background-color` and `width`/`height` or `mask-size`).
 
 Best used with icons that are a single compound shape (solid silhouette). Multi-shape or multi-color SVGs can produce unexpected masking results.
 
