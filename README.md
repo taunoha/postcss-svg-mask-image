@@ -29,7 +29,6 @@ module.exports = {
   plugins: [
     require("postcss-svg-mask-image")({
       iconsDir: path.resolve(__dirname, "assets/icons"),
-      // addWebkitCompanions: true,
       // maskPositionValue: "center",
       // overwriteRootVars: true,
     }),
