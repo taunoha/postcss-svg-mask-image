@@ -68,4 +68,24 @@ describe("postcss-svg-mask-image", () => {
     expect(css).toContain("var(--icon-arrows-arrow-right)");
     expect(css).toContain("data:image/svg+xml");
   });
+
+  it("cleans SVG before encoding: strips xml declaration, comments, metadata, title, desc, editor attrs", async () => {
+    const css = await run(`
+      .cleaned {
+        mask-image: svg("test-clean");
+      }
+    `);
+    const dataUriMatch = css.match(/url\("(data:image\/svg\+xml,[^"]+)"\)/);
+    expect(dataUriMatch).toBeTruthy();
+    const decoded = decodeURIComponent(dataUriMatch[1].replace("data:image/svg+xml,", ""));
+    expect(decoded).not.toMatch(/<\?xml/);
+    expect(decoded).not.toMatch(/<!--/);
+    expect(decoded).not.toMatch(/<metadata/);
+    expect(decoded).not.toMatch(/<title/);
+    expect(decoded).not.toMatch(/<desc/);
+    expect(decoded).not.toMatch(/inkscape:/);
+    expect(decoded).not.toMatch(/sodipodi:/);
+    expect(decoded).toContain("<svg");
+    expect(decoded).toContain("<path");
+  });
 });

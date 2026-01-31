@@ -243,11 +243,22 @@ function resolveIconPathSafe(iconsDir, iconName, ext) {
   return target;
 }
 
+function cleanSvg(svg) {
+  let s = svg;
+  s = s.replace(/<\?xml[\s\S]*?\?>/g, "");
+  s = s.replace(/<!--[\s\S]*?-->/g, "");
+  s = s.replace(/<metadata[^>]*>[\s\S]*?<\/metadata>/gi, "");
+  s = s.replace(/<title[^>]*>[\s\S]*?<\/title>/gi, "");
+  s = s.replace(/<desc[^>]*>[\s\S]*?<\/desc>/gi, "");
+  s = s.replace(/\s+(?:xmlns:(?:inkscape|sodipodi|rdf|dc|cc)|(?:inkscape|sodipodi):[a-zA-Z0-9-]+)="[^"]*"/g, "");
+  return s;
+}
+
 /**
  * Create a compact SVG data URI for CSS.
  */
 function svgToMiniDataUri(svg) {
-  let s = svg.trim();
+  let s = cleanSvg(svg).trim();
   if (s.charCodeAt(0) === 0xfeff) s = s.slice(1);
 
   s = s
