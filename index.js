@@ -6,6 +6,8 @@ module.exports = function postcssMaskSvgIcons(opts = {}) {
   const {
     // syntax
     functionName = "svg",
+    // var-only function: replaces with var(--icon-*) only, works on any property. Set to null to disable.
+    functionNameVar = "svg-var",
 
     // where to look for icons
     iconsDir = path.resolve(process.cwd(), "icons"),
@@ -22,13 +24,16 @@ module.exports = function postcssMaskSvgIcons(opts = {}) {
     // default: replace "/" with "-" => --icon-arrows-arrow-right
     toVarKey = (iconName) => iconName.replace(/[\\/]/g, "-"),
 
-    // injected block
+    // varOnly: when true, svg() is also treated as var-only (no mask/background injection)
+    varOnly = false,
+
+    // injected block (ignored when using var-only: svg-var() or varOnly)
     defaultColor = "currentColor",
     maskRepeatValue = "no-repeat",
     maskSizeValue = "100% 100%",
     maskPositionValue = null, // e.g. 'center' if you want; null disables injection
 
-    // which declarations to handle
+    // which declarations to handle (when !varOnly). When varOnly, any decl with svg() is handled.
     properties = ["mask-image", "mask"],
 
     // background-color handling
@@ -44,18 +49,26 @@ module.exports = function postcssMaskSvgIcons(opts = {}) {
     postcssPlugin: "postcss-mask-svg-icons",
 
     async Once(root, { result }) {
-      // 1) Rewrite decls and collect needed icons
       root.walkDecls((decl) => {
-        if (!properties.includes(decl.prop)) return;
         if (typeof decl.value !== "string") return;
-        if (!decl.value.includes(functionName + "(")) return;
 
-        const parsed = parseSvgFunctionWholeValue(decl.value, functionName);
+        let parsed = null;
+        let isVarOnly = false;
+
+        if (functionNameVar && decl.value.includes(functionNameVar + "(")) {
+          parsed = parseSvgFunctionWholeValue(decl.value, functionNameVar);
+          if (parsed) isVarOnly = true;
+        }
+        if (!parsed && decl.value.includes(functionName + "(")) {
+          parsed = parseSvgFunctionWholeValue(decl.value, functionName);
+          if (parsed) isVarOnly = varOnly;
+        }
+
         if (!parsed) return;
+        if (!isVarOnly && !properties.includes(decl.prop)) return;
 
         const { iconName, color } = parsed;
 
-        // Compute custom prop
         const varKey = toVarKey(iconName);
         const varName = `${iconVarPrefix}${varKey}`;
 
@@ -70,7 +83,10 @@ module.exports = function postcssMaskSvgIcons(opts = {}) {
           });
         }
 
-        // 1a) Inject background-color
+        decl.value = `var(${varName})`;
+
+        if (isVarOnly) return;
+
         const bgColor = color ?? defaultColor;
         if (
           !(
@@ -81,32 +97,19 @@ module.exports = function postcssMaskSvgIcons(opts = {}) {
           decl.cloneBefore({ prop: "background-color", value: bgColor });
         }
 
-        // 1b) Rewrite property
-        // For mask shorthand, we convert to mask-image (simpler + matches your expected output).
-        const newValue = `var(${varName})`;
-
         if (decl.prop === "mask" || decl.prop === "-webkit-mask") {
-          // Replace shorthand decl with mask-image decl
           const maskImageProp =
             decl.prop === "-webkit-mask" ? "-webkit-mask-image" : "mask-image";
-          decl.cloneBefore({ prop: maskImageProp, value: newValue });
+          decl.cloneBefore({ prop: maskImageProp, value: decl.value });
           decl.remove();
-        } else {
-          // mask-image or -webkit-mask-image
-          decl.value = newValue;
         }
 
-        // 1c) Ensure repeat/size/(position)
-        // Insert after the last mask-image-ish decl we just created/edited.
-        // We use decl (even if removed, we already cloned before; easiest is to operate on parent).
         const rule = decl.parent;
-
         ensureDecl(rule, "mask-repeat", maskRepeatValue);
         ensureDecl(rule, "mask-size", maskSizeValue);
         if (maskPositionValue != null) {
           ensureDecl(rule, "mask-position", maskPositionValue);
         }
-
       });
 
       if (needed.size === 0) return;
@@ -251,6 +254,8 @@ function cleanSvg(svg) {
   s = s.replace(/<title[^>]*>[\s\S]*?<\/title>/gi, "");
   s = s.replace(/<desc[^>]*>[\s\S]*?<\/desc>/gi, "");
   s = s.replace(/\s+(?:xmlns:(?:inkscape|sodipodi|rdf|dc|cc)|(?:inkscape|sodipodi):[a-zA-Z0-9-]+)="[^"]*"/g, "");
+  s = s.replace(/\s*id\s*=\s*["'][^"']*["']/gi, "");
+  s = s.replace(/\s*data-[a-zA-Z0-9_.-]+\s*=\s*["'][^"']*["']/gi, "");
   return s;
 }
 

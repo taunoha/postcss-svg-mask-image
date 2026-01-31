@@ -42,7 +42,8 @@ Subfolders are supported: `svg("arrows/arrow-right")` resolves to `assets/icons/
 
 - `iconsDir` (string): Directory where SVG files are stored. Default: `path.resolve(process.cwd(), "icons")`
 - `extension` (string): SVG file extension. Default: `".svg"`
-- `functionName` (string): Name of the custom function in CSS. Default: `"svg"`
+- `functionName` (string): Name of the custom function in CSS (full mask + background injection). Default: `"svg"`
+- `functionNameVar` (string | null): Var-only function: replaces with `var(--icon-*)` only, works on any property. Use this to mix full mask and var-only in one file. Set to `null` to disable. Default: `"svg-var"`
 - `rootSelector` (string): Selector for the rule that holds icon variables. Default: `":root"`
 - `insertRootAt` (`"top"` | `"bottom"`): Where to inject the `:root` rule. Default: `"top"`
 - `overwriteRootVars` (boolean): Overwrite existing custom properties in `:root`. Default: `false`
@@ -51,7 +52,8 @@ Subfolders are supported: `svg("arrows/arrow-right")` resolves to `assets/icons/
 - `defaultColor` (string): Injected `background-color` when no second argument to `svg()`. Default: `"currentColor"`
 - `maskRepeatValue`, `maskSizeValue` (string): Injected mask properties. Defaults: `"no-repeat"`, `"100% 100%"`
 - `maskPositionValue` (string | null): Injected mask-position; `null` disables. Default: `null`
-- `properties` (string[]): Declaration names to process. Default: `["mask-image", "mask"]`
+- `varOnly` (boolean): If `true`, treat `svg()` as var-only (same behavior as `svg-var()`). Use when you want var-only everywhere without changing CSS. Default: `false`
+- `properties` (string[]): Declaration names to process for `svg()` (full injection). Default: `["mask-image", "mask"]`
 - `doNotOverrideBackgroundColor` (boolean): Skip injecting background-color if the rule already has one. Default: `true`
 
 ### CSS Usage
@@ -129,10 +131,54 @@ The plugin will transform this to:
 
 The `:root` declarations are injected into the same CSS file (at the top or bottom, see `insertRootAt`).
 
+#### `svg-var()` — var-only (mix with `svg()`)
+
+Use `svg-var()` when you want only the CSS variable replacement, no mask or background injection. It works on any property (e.g. `background-image`). You can mix `svg()` and `svg-var()` in the same file:
+
+```css
+.mask-icon {
+  mask-image: svg("arrow");
+}
+.bg-icon {
+  background-image: svg-var("arrow");
+}
+```
+
+Becomes:
+
+```css
+:root {
+  --icon-arrow: url("data:image/svg+xml,...");
+}
+
+.mask-icon {
+  background-color: currentColor;
+  mask-image: var(--icon-arrow);
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+}
+
+.bg-icon {
+  background-image: var(--icon-arrow);
+}
+```
+
+Set `functionNameVar: null` to disable `svg-var()`.
+
+#### `varOnly` option
+
+With `varOnly: true`, every `svg()` call is treated as var-only (same as `svg-var()`). Use when you want var-only everywhere without changing your CSS to `svg-var()`.
+
 Notes:
 
 - To pass a CSS variable as the optional color argument, keep it quoted: `svg("arrow-right", "var(--color-primary)")`.
 - If you need per-usage colors, you can also skip the second argument and set `color` (recommended) or `background-color` in regular CSS.
+
+### SVG cleaning
+
+Before encoding, the plugin strips from each SVG: XML declaration, comments, `<metadata>`, `<title>`, `<desc>`, editor namespaces (e.g. Inkscape/Sodipodi), `id`, and `data-*` attributes, so only rendering-relevant markup remains.
+
+For full optimization (e.g. minifying paths, removing default attributes), run your SVGs through [SVGO](https://github.com/svg/svgo) before or alongside this plugin; SVGO is the standard Node.js SVG optimizer.
 
 ## Requirements
 
