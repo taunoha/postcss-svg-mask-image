@@ -27,9 +27,10 @@
   "engines": {
     "node": ">=22"
   },
+  "homepage": "https://github.com/taunoha/vite-plugin-css-svg-mask-image#readme",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/taunoha/vite-plugin-css-svg-mask-image.git"
   },
   "scripts": {
     "test": "vitest run"
