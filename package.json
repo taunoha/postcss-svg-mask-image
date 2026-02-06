@@ -1,6 +1,6 @@
 {
   "name": "postcss-svg-mask-image",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "PostCSS plugin for SVG mask-image",
   "keywords": [
     "postcss",
@@ -27,10 +27,10 @@
   "engines": {
     "node": ">=22"
   },
-  "homepage": "https://github.com/taunoha/vite-plugin-css-svg-mask-image#readme",
+  "homepage": "https://github.com/taunoha/postcss-svg-mask-image#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/taunoha/vite-plugin-css-svg-mask-image.git"
+    "url": "git+https://github.com/taunoha/postcss-svg-mask-image.git"
   },
   "scripts": {
     "test": "vitest run"
